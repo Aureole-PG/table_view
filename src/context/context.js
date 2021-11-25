@@ -1,5 +1,5 @@
 import React, {createContext, useMemo, useState} from 'react';
-export const AuthContext = createContext(null);
+export const AuthContext = createContext({logged: false});
 
 const AuthProvider = ({children}) => {
   const [user, setUser] = useState({logged: false});
@@ -9,9 +9,14 @@ const AuthProvider = ({children}) => {
   const logOut = () => {
     setUser({logged: false});
   };
-  const userValues = useMemo(() => {
-    user, login, logOut;
-  }, [user]);
+  const userValues = useMemo(
+    () => ({
+      user,
+      login,
+      logOut,
+    }),
+    [user],
+  );
   return (
     <AuthContext.Provider value={userValues}>{children}</AuthContext.Provider>
   );

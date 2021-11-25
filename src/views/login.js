@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   StyleSheet,
   View,
@@ -7,12 +7,14 @@ import {
   KeyboardAvoidingView,
   TouchableOpacity,
 } from 'react-native';
+import {AuthContext} from '../context/context';
 const LoginScreen = () => {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const {login} = useContext(AuthContext);
   return (
     <KeyboardAvoidingView
-      style={{flex: 1, backgroundColor: '#FEDFD4', position: 'relative'}}>
+      style={{flex: 1, backgroundColor: '#212529', position: 'relative'}}>
       <View style={styles.background}>
         <Text style={styles.title}>Tablas</Text>
       </View>
@@ -39,7 +41,7 @@ const LoginScreen = () => {
           />
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={login}>
             <Text>Login</Text>
           </TouchableOpacity>
         </View>
@@ -64,7 +66,7 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    backgroundColor: '#65010C',
+    backgroundColor: '#033270',
     borderBottomEndRadius: 20,
     borderBottomStartRadius: 20,
     justifyContent: 'center',
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
   },
   background1: {
     flex: 1,
-    backgroundColor: '#FEDFD4',
+    backgroundColor: '#212529',
   },
   title: {
     color: '#FFF',
