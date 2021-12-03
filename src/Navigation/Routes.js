@@ -12,7 +12,7 @@ import {
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
-
+import {DrawnerContent} from '../components/DrawerContent';
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 const CustomDrawerContent = props => {
@@ -50,9 +50,8 @@ const AuthStack = () => {
 };
 const MyDrawer = () => {
   return (
-    <Drawer.Navigator
-      drawerContent={props => <CustomDrawerContent {...props} />}>
-      <Drawer.Screen name="List" component={AuthStack} />
+    <Drawer.Navigator drawerContent={props => <DrawnerContent {...props} />}>
+      <Drawer.Screen name="Clientes" component={AuthStack} />
       {/* <Drawer.Screen name="Article" component={Article} /> */}
     </Drawer.Navigator>
   );

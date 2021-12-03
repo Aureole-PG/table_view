@@ -9,25 +9,41 @@ import {
 } from 'react-native';
 import {AuthContext} from '../context/context';
 const LoginScreen = () => {
-  const [user, setUser] = useState('');
+  const [email, setEmail] = useState('danylove9569@hotmail.com');
   const [password, setPassword] = useState('');
   const {login} = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const onSubmit = () => {
+    setLoading(true);
+    console.log('submit');
+    login(email, password).catch(() => {
+      setLoading(false);
+    });
+  };
+  if (loading) {
+    return (
+      <View>
+        <Text>Cargando</Text>
+      </View>
+    );
+  }
   return (
     <KeyboardAvoidingView
       style={{flex: 1, backgroundColor: '#212529', position: 'relative'}}>
       <View style={styles.background}>
-        <Text style={styles.title}>Tablas</Text>
+        <Text style={styles.title}>Consorcio</Text>
       </View>
       <View style={styles.background1} />
 
       <View style={styles.contenedor}>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Usuario</Text>
+          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.inputs}
-            onChangeText={user => setUser(user)}
-            defaultValue={user}
-            placeholder="Usuario"
+            onChangeText={user => setEmail(user)}
+            defaultValue={email}
+            keyboardType="email-address"
+            placeholder="email@email.com"
           />
         </View>
         <View style={styles.inputContainer}>
@@ -41,8 +57,8 @@ const LoginScreen = () => {
           />
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={login}>
-            <Text>Login</Text>
+          <TouchableOpacity style={styles.button} onPress={onSubmit}>
+            <Text style={{color: '#FFF'}}>Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -57,7 +73,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: '20%',
-    backgroundColor: '#0A100D',
+    backgroundColor: '#e5e6e9',
     flex: 2,
     marginHorizontal: 10,
     paddingTop: 20,
@@ -86,19 +102,20 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   inputs: {
-    backgroundColor: '#343A40',
+    backgroundColor: '#f8f9fc',
     borderRadius: 10,
   },
   label: {
     marginLeft: 5,
     fontStyle: 'italic',
+    color: '#000',
   },
   buttonContainer: {
     marginHorizontal: 50,
     marginVertical: 30,
   },
   button: {
-    backgroundColor: '#65010C',
+    backgroundColor: '#253d53',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',

@@ -1,89 +1,152 @@
-import React from 'react';
-import {StyleSheet, View, Text, FlatList, TouchableOpacity} from 'react-native';
-const DATA = [
-  {
-    id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-    title: 'First Item',
-  },
-  {
-    id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-    title: 'Second Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d72',
-    title: 'Third Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d73',
-    title: 'Third Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d74',
-    title: 'Third Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d75',
-    title: 'Third Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d76',
-    title: 'Third Item',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d77',
-    title: 'Third Item',
-  },
-];
-const Item = ({navigation, title}) => (
-  <View style={styles.item}>
+import React, {useContext, useState, useEffect} from 'react';
+import {AuthContext} from '../context/context';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
+import SelectDropdown from 'react-native-select-dropdown';
+const mode = ['Nombre', 'Cedula'];
+const Item = ({nombre, apellido, cedula, tramite, estado, fecha}) => (
+  <View style={[styles.item, estado != 'Activo' ? styles.itemStatus : null]}>
     <View style={styles.ItemContent}>
       <View style={styles.description}>
-        <Text style={styles.title}>{title}</Text>
-        <Text>lorem impsusadasdjasdljkjnñasdasdasdasd</Text>
-      </View>
-      <View style={styles.action}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Datos')}>
-          <Text>ver</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>{tramite}</Text>
+
+        <Text>{`${nombre} ${apellido}`}</Text>
+        <Text>{cedula}</Text>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Text>{fecha}</Text>
+          <Text>{estado}</Text>
+        </View>
       </View>
     </View>
   </View>
 );
 const HomeScreen = ({navigation}) => {
+  const {getClients} = useContext(AuthContext);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState([]);
+  const [data, setData] = useState([]);
+  const [searchType, setSearchType] = useState(mode[0]);
+  const filterData = () => {
+    let res = [];
+    if (searchType == 'Nombre') {
+      res = data.filter(e => e.nombre_cliente.includes(search.toUpperCase()));
+      setFilter(res);
+    }
+    if (searchType == 'Cedula') {
+      res = data.filter(e => e.cliente_cédula.includes(search));
+      setFilter(res);
+    }
+  };
   const renderItem = ({item}) => (
-    <Item title={item.title} navigation={navigation} />
+    <Item
+      nombre={item.nombre_cliente}
+      apellido={item.apellido_cliente}
+      tramite={item.TRAMITE}
+      fecha={item.FECHA}
+      estado={item.estado_proceso}
+      navigation={navigation}
+      cedula={item.cliente_cédula}
+    />
   );
+  useEffect(() => {
+    getClients().then(e => {
+      setData(e);
+      setFilter(e);
+    });
+  }, []);
   return (
     <View style={styles.container}>
-      <View style={styles.action}>
-        <Text>Home</Text>
+      <View style={{flex: 1, paddingHorizontal: 25}}>
+        <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={styles.searchInput}>
+            <TextInput
+              style={styles.inputs}
+              onChangeText={x => setSearch(x)}
+              defaultValue={search}
+            />
+          </View>
+          <View style={styles.action}>
+            <SelectDropdown
+              data={mode}
+              defaultValueByIndex={0}
+              buttonStyle={{
+                backgroundColor: '#f8f9fc',
+                borderLeftWidth: 0.5,
+                borderTopRightRadius: 10,
+                borderBottomRightRadius: 10,
+              }}
+              dropdownStyle={{
+                borderRadius: 10,
+              }}
+              onSelect={(selectedItem, index) => {
+                setSearchType(selectedItem);
+                setFilter(data);
+              }}
+              buttonTextAfterSelection={(selectedItem, index) => {
+                // text represented after item is selected
+                // if data array is an array of objects then return selectedItem.property to render after item is selected
+                return selectedItem;
+              }}
+              rowTextForSelection={(item, index) => {
+                // text represented for each item in dropdown
+                // if data array is an array of objects then return item.property to represent item in dropdown
+                return item;
+              }}
+            />
+          </View>
+        </View>
+        <View style={styles.action}>
+          <TouchableOpacity style={styles.button} onPress={filterData}>
+            <Text style={{color: '#FFF'}}>buscar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <FlatList
-        data={DATA}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-      />
+      <View style={{flex: 4}}>
+        {filter.length == 0 && (
+          <View style={styles.action}>
+            <Text>No hay datos</Text>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setFilter(data)}>
+              <Text style={{color: '#FFF'}}>Aceptar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <FlatList
+          data={filter}
+          renderItem={renderItem}
+          keyExtractor={(item, id) => id}
+        />
+      </View>
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#eceef3',
     // justifyContent: 'center',
     // alignItems: 'center',
   },
   item: {
     backgroundColor: '#FFF',
-    paddingLeft: 20,
+    paddingHorizontal: 20,
     paddingVertical: 5,
     marginVertical: 8,
     marginHorizontal: 16,
     borderLeftWidth: 3,
     borderColor: '#1368AA',
     borderRadius: 5,
+  },
+  itemStatus: {
+    borderColor: '#ab0000',
   },
   title: {
     fontSize: 15,
@@ -93,7 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   description: {
-    flex: 3,
+    flex: 1,
   },
   action: {
     flex: 1,
@@ -101,9 +164,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   button: {
-    backgroundColor: '#65010C',
+    backgroundColor: '#253d53',
     padding: 10,
     borderRadius: 5,
+  },
+  inputs: {
+    backgroundColor: '#f8f9fc',
+    borderRadius: 10,
+  },
+
+  searchInput: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });
 
