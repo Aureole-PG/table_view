@@ -7,8 +7,11 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  RefreshControl,
+  ScrollView,
 } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
+import Loading from '../components/Loading';
 const mode = ['Nombre', 'Cedula'];
 const Item = ({nombre, apellido, cedula, tramite, estado, fecha}) => (
   <View style={[styles.item, estado != 'Activo' ? styles.itemStatus : null]}>
@@ -31,7 +34,10 @@ const HomeScreen = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState([]);
   const [data, setData] = useState([]);
+  const [error, setError] = useState(false);
   const [searchType, setSearchType] = useState(mode[0]);
+  const [errorText, setErrorText] = useState('');
+  const [refreshing, setRefreshing] = useState(true);
   const filterData = () => {
     let res = [];
     if (searchType == 'Nombre') {
@@ -43,6 +49,9 @@ const HomeScreen = ({navigation}) => {
       setFilter(res);
     }
   };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+  }, []);
   const renderItem = ({item}) => (
     <Item
       nombre={item.nombre_cliente}
@@ -55,11 +64,21 @@ const HomeScreen = ({navigation}) => {
     />
   );
   useEffect(() => {
-    getClients().then(e => {
-      setData(e);
-      setFilter(e);
-    });
-  }, []);
+    if (refreshing) {
+      getClients()
+        .then(e => {
+          setData(e);
+          setFilter(e);
+          setRefreshing(false);
+          setError(false);
+        })
+        .catch(e => {
+          setErrorText(JSON.stringify(e));
+          setError(true);
+          setRefreshing(false);
+        });
+    }
+  }, [refreshing]);
   return (
     <View style={styles.container}>
       <View style={{flex: 1, paddingHorizontal: 25}}>
@@ -109,21 +128,39 @@ const HomeScreen = ({navigation}) => {
       </View>
 
       <View style={{flex: 4}}>
-        {filter.length == 0 && (
-          <View style={styles.action}>
-            <Text>No hay datos</Text>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => setFilter(data)}>
-              <Text style={{color: '#FFF'}}>Aceptar</Text>
-            </TouchableOpacity>
-          </View>
+        {!error ? (
+          <>
+            {filter.length == 0 ? (
+              <View style={styles.action}>
+                <Text>No hay datos</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setFilter(data)}>
+                  <Text style={{color: '#FFF'}}>Aceptar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                  />
+                }
+                data={filter}
+                renderItem={renderItem}
+                keyExtractor={(item, id) => id}
+              />
+            )}
+          </>
+        ) : (
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }>
+            <Text>{errorText}</Text>
+          </ScrollView>
         )}
-        <FlatList
-          data={filter}
-          renderItem={renderItem}
-          keyExtractor={(item, id) => id}
-        />
       </View>
     </View>
   );

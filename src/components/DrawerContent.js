@@ -23,7 +23,6 @@ export const DrawnerContent = props => {
           <Text style={styles.subData}>{user.cedula} </Text>
         </View>
         <DrawerItemList {...props} />
-        {/* <Text>asdsad</Text> */}
         <DrawerItem label="Salir" onPress={logOut} />
       </View>
     </DrawerContentScrollView>

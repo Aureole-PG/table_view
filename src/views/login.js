@@ -7,35 +7,43 @@ import {
   KeyboardAvoidingView,
   TouchableOpacity,
 } from 'react-native';
+import CustomModal from '../components/Modal';
 import {AuthContext} from '../context/context';
+import Loading from '../components/Loading';
 const LoginScreen = () => {
   const [email, setEmail] = useState('danylove9569@hotmail.com');
   const [password, setPassword] = useState('');
   const {login} = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState(false);
   const onSubmit = () => {
     setLoading(true);
-    console.log('submit');
-    login(email, password).catch(() => {
+    login(email, password).catch(e => {
       setLoading(false);
+      setError(true);
     });
   };
   if (loading) {
-    return (
-      <View>
-        <Text>Cargando</Text>
-      </View>
-    );
+    return <Loading />;
   }
   return (
     <KeyboardAvoidingView
       style={{flex: 1, backgroundColor: '#212529', position: 'relative'}}>
       <View style={styles.background}>
-        <Text style={styles.title}>Consorcio</Text>
+        <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
+          <Text style={styles.title}>Bienvenido</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.background1} />
 
       <View style={styles.contenedor}>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text>Usuario o contraseña incorrectos</Text>
+          </View>
+        )}
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -62,6 +70,7 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      <CustomModal modalVisible={modalVisible} setModal={setModalVisible} />
     </KeyboardAvoidingView>
   );
 };
@@ -120,6 +129,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+  },
+  hostButton: {
+    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+  },
+  errorContainer: {
+    backgroundColor: '#e17d7d',
+    padding: 10,
+    margin: 10,
+    borderRadius: 10,
   },
 });
 
