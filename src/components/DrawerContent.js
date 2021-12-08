@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
 import {AuthContext} from '../context/context';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Image} from 'react-native';
 
 import {
   DrawerContentScrollView,
@@ -13,8 +13,10 @@ export const DrawnerContent = props => {
   return (
     <DrawerContentScrollView>
       <View style={styles.titleContiner}>
-        <Text style={styles.title}>ORQUERA &</Text>
-        <Text style={styles.title}>ORQUERA</Text>
+        <Image
+          source={require('../../assets/logo.png')}
+          resizeMode={'center'}
+        />
       </View>
       <View style={styles.infoContainer}>
         <View style={{marginVertical: 10}}>

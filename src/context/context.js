@@ -3,12 +3,14 @@ import {Api} from '../Api/Api';
 export const AuthContext = createContext({logged: false});
 const AuthProvider = ({children}) => {
   const [user, setUser] = useState({logged: false});
-  const [address, setAddress] = useState('192.168.100.177:8080');
+  // http://192.168.100.177:8080
+  const [address, setAddress] = useState('http://192.168.100.10:3000');
   const login = async (email, password) => {
-    const res = await Api(address).post('/login_api', {
-      email,
-      password,
-    });
+    var formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    const res = await Api(address).post('/login_api', formData);
+    // const res = await Api(address).post('/login_api', {email, password});
     setUser({logged: true, ...res.data});
   };
   const getClients = async () => {

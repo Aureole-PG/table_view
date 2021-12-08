@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import {AuthContext} from '../context/context';
 const CustomModal = ({modalVisible, setModal}) => {
-  const [addressText, setAddressText] = useState('');
-  const {newAddress} = useContext(AuthContext);
+  const {newAddress, address} = useContext(AuthContext);
+  const [addressText, setAddressText] = useState(address);
   const submit = () => {
     newAddress(addressText);
     setModal(!modalVisible);
@@ -29,12 +29,13 @@ const CustomModal = ({modalVisible, setModal}) => {
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text>Ingrese Direccion IP</Text>
+          <Text>{address}</Text>
           <View>
             <TextInput
               style={styles.inputs}
               onChangeText={setAddressText}
               defaultValue={addressText}
-              placeholder="192.168.100.177:8080"
+              placeholder="https://192.168.100.177:8080"
             />
           </View>
           <View style={styles.inputContainer}>

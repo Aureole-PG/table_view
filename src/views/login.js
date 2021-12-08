@@ -6,6 +6,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   TouchableOpacity,
+  // ScrollView,
 } from 'react-native';
 import CustomModal from '../components/Modal';
 import {AuthContext} from '../context/context';
@@ -17,11 +18,13 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [error, setError] = useState(false);
+  // const [errorText, setErrorText] = useState('');
   const onSubmit = () => {
     setLoading(true);
     login(email, password).catch(e => {
       setLoading(false);
       setError(true);
+      // setErrorText(JSON.stringify(e));
     });
   };
   if (loading) {
