@@ -10,20 +10,28 @@ import {
   RefreshControl,
   ScrollView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import moment from 'moment/min/moment-with-locales';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateRangePicker from 'react-native-daterange-picker';
 moment.locale('es');
 const mode = ['Nombre', 'Cedula', 'Estado', 'Fecha'];
-const state = ['iniciar', 'proceso', 'finalizado'];
+const state = ['No iniciado', 'En proceso', 'Finalizado'];
 const color = {
-  iniciar: '#2c7da0',
-  proceso: '#a7c957',
-  finalizado: '#b1a7a6',
+  'NO INICIADO': '#90be6d',
+  'EN PROCESO': '#f9c74f',
+  FINALIZADO: '#f94144',
 };
+const DismissKeyboard = ({children}) => (
+  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+    {children}
+  </TouchableWithoutFeedback>
+);
 const Item = ({nombre, apellido, cedula, tramite, estado, fecha}) => (
-  <View style={[styles.item, {borderLeftColor: color[estado]}]}>
+  <View style={[styles.item, {borderLeftColor: color[estado.toUpperCase()]}]}>
     <View style={styles.ItemContent}>
       <View style={styles.description}>
         <Text style={styles.title}>{tramite}</Text>
@@ -32,7 +40,7 @@ const Item = ({nombre, apellido, cedula, tramite, estado, fecha}) => (
         <Text>{cedula}</Text>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text>{fecha}</Text>
-          <Text>{estado}</Text>
+          <Text>{estado.toUpperCase()}</Text>
         </View>
       </View>
     </View>
@@ -49,10 +57,23 @@ const HomeScreen = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(true);
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
+  const [dates, setDatess] = useState({
+    startDate: null,
+    endDate: null,
+    displayedDate: moment(),
+  });
+  const {startDate, endDate, displayedDate} = dates;
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
     setDate(currentDate);
+  };
+  const setDates = newdate => {
+    setDatess({...dates, ...newdate});
+    // console.log(new)
+    if (newdate.endDate != null || newdate.endDate != undefined) {
+      setShow(false);
+    }
   };
   const filterData = () => {
     let res = [];
@@ -71,7 +92,11 @@ const HomeScreen = ({navigation}) => {
       setFilter(res);
     }
     if (searchType == 'Fecha') {
-      res = data.filter(e => moment(e.FECHA) >= moment(date));
+      res = data.filter(
+        e =>
+          moment(e.FECHA) >= moment(startDate) &&
+          moment(e.FECHA) <= moment(endDate),
+      );
       setFilter(res);
     }
   };
@@ -100,37 +125,93 @@ const HomeScreen = ({navigation}) => {
           });
           setData(newData);
           setFilter(newData);
-          setRefreshing(false);
           setError(false);
         })
         .catch(e => {
           setErrorText(JSON.stringify(e));
           setError(true);
+        })
+        .finally(() => {
           setRefreshing(false);
         });
     }
   }, [refreshing]);
+
   return (
-    <View style={styles.container}>
-      <View style={{flex: 1, paddingHorizontal: 25}}>
-        <View style={{flex: 1, flexDirection: 'row'}}>
-          <View style={styles.searchInput}>
-            {searchType == 'Estado' && (
+    <DismissKeyboard>
+      <View style={styles.container}>
+        <View style={{flex: 1, paddingHorizontal: 25}}>
+          <View style={{flex: 1, flexDirection: 'row'}}>
+            <View style={styles.searchInput}>
+              {searchType == 'Estado' && (
+                <SelectDropdown
+                  data={state}
+                  // defaultValueByIndex={0}
+                  buttonStyle={{
+                    width: 'auto',
+                    backgroundColor: '#f8f9fc',
+                    borderLeftWidth: 0.5,
+                    borderTopLeftRadius: 10,
+                    borderBottomLeftRadius: 10,
+                  }}
+                  defaultButtonText={'Selecciona una opción'}
+                  dropdownStyle={{
+                    borderRadius: 10,
+                  }}
+                  onSelect={(selectedItem, index) => {
+                    setSearch(selectedItem);
+                  }}
+                  buttonTextAfterSelection={(selectedItem, index) => {
+                    return selectedItem;
+                  }}
+                  rowTextForSelection={(item, index) => {
+                    return item;
+                  }}
+                />
+              )}
+              {(searchType == 'Cedula' || searchType == 'Nombre') && (
+                <TextInput
+                  style={styles.inputs}
+                  onChangeText={x => setSearch(x)}
+                  defaultValue={search}
+                  keyboardType={searchType == 'Cedula' ? 'numeric' : 'default'}
+                  maxLength={searchType == 'Cedula' ? 10 : 20}
+                />
+              )}
+              {searchType == 'Fecha' && (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.inputs,
+                      {paddingVertical: 15, paddingHorizontal: 10},
+                    ]}
+                    onPress={() => setShow(true)}>
+                    <Text>{`del ${moment(startDate).format(
+                      'Do MMM',
+                    )} al ${moment(endDate).format('Do MMM')}`}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+            <View style={styles.action}>
               <SelectDropdown
-                data={state}
-                // defaultValueByIndex={0}
+                data={mode}
+                defaultValueByIndex={0}
                 buttonStyle={{
-                  width: 'auto',
+                  width: 100,
                   backgroundColor: '#f8f9fc',
                   borderLeftWidth: 0.5,
-                  borderTopLeftRadius: 10,
-                  borderBottomLeftRadius: 10,
+                  borderTopRightRadius: 10,
+                  borderBottomRightRadius: 10,
                 }}
                 dropdownStyle={{
                   borderRadius: 10,
                 }}
                 onSelect={(selectedItem, index) => {
-                  setSearch(selectedItem);
+                  setSearchType(selectedItem);
+                  setSearch('');
+                  setFilter(data);
+                  setShow(false);
                 }}
                 buttonTextAfterSelection={(selectedItem, index) => {
                   return selectedItem;
@@ -139,119 +220,79 @@ const HomeScreen = ({navigation}) => {
                   return item;
                 }}
               />
-            )}
-            {(searchType == 'Cedula' || searchType == 'Nombre') && (
-              <TextInput
-                style={styles.inputs}
-                onChangeText={x => setSearch(x)}
-                defaultValue={search}
-                keyboardType={searchType == 'Cedula' ? 'numeric' : 'default'}
-                maxLength={searchType == 'Cedula' ? 10 : 20}
-              />
-            )}
-            {searchType == 'Fecha' && (
-              <TouchableOpacity
-                style={[
-                  styles.inputs,
-                  {paddingVertical: 15, paddingHorizontal: 10},
-                ]}
-                onPress={() => setShow(true)}>
-                <Text style={{color: '#FFF'}}>{moment(date).format('LL')}</Text>
-              </TouchableOpacity>
-            )}
-            {show && (
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={date}
-                mode={'date'}
-                is24Hour={true}
-                display="default"
-                onChange={onChange}
-              />
-            )}
+            </View>
           </View>
           <View style={styles.action}>
-            <SelectDropdown
-              data={mode}
-              defaultValueByIndex={0}
-              buttonStyle={{
-                width: 100,
-                backgroundColor: '#f8f9fc',
-                borderLeftWidth: 0.5,
-                borderTopRightRadius: 10,
-                borderBottomRightRadius: 10,
-              }}
-              dropdownStyle={{
-                borderRadius: 10,
-              }}
-              onSelect={(selectedItem, index) => {
-                setSearchType(selectedItem);
-                setSearch('');
-                setFilter(data);
-              }}
-              buttonTextAfterSelection={(selectedItem, index) => {
-                return selectedItem;
-              }}
-              rowTextForSelection={(item, index) => {
-                return item;
-              }}
-            />
+            <TouchableOpacity style={styles.buttonB} onPress={filterData}>
+              <Text
+                style={{
+                  color: '#FFF',
+                  marginHorizontal: 30,
+                  marginVertical: 10,
+                }}>
+                buscar
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.action}>
-          <TouchableOpacity style={styles.buttonB} onPress={filterData}>
-            <Text
-              style={{color: '#FFF', marginHorizontal: 30, marginVertical: 10}}>
-              buscar
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      <View style={{flex: 4}}>
-        {!error ? (
-          <>
-            {filter.length == 0 ? (
-              <ScrollView
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                  />
-                }>
-                <View style={styles.action}>
-                  <Text>No hay datos</Text>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setFilter(data)}>
-                    <Text style={{color: '#FFF'}}>Aceptar</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            ) : (
-              <FlatList
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                  />
-                }
-                data={filter}
-                renderItem={renderItem}
-                keyExtractor={(item, id) => id}
-              />
-            )}
-          </>
-        ) : (
-          <ScrollView
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }>
-            <Text>{errorText}</Text>
-          </ScrollView>
+        <View style={{flex: 4}}>
+          {!error ? (
+            <>
+              {filter.length == 0 ? (
+                <ScrollView
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }>
+                  <View style={styles.action}>
+                    <Text>No hay datos</Text>
+                  </View>
+                </ScrollView>
+              ) : (
+                <FlatList
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }
+                  data={filter}
+                  renderItem={renderItem}
+                  keyExtractor={(item, id) => id}
+                />
+              )}
+            </>
+          ) : (
+            <ScrollView
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }>
+              <Text>{errorText}</Text>
+            </ScrollView>
+          )}
+        </View>
+        {show && (
+          <View
+            onPress={() => console.log('sdasd')}
+            style={{
+              position: 'absolute',
+            }}>
+            <DateRangePicker
+              open={show}
+              onChange={setDates}
+              endDate={endDate}
+              startDate={startDate}
+              displayedDate={displayedDate}
+              range>
+              <Text> </Text>
+            </DateRangePicker>
+          </View>
         )}
       </View>
-    </View>
+    </DismissKeyboard>
   );
 };
 const styles = StyleSheet.create({

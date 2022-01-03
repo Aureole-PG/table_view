@@ -4,7 +4,7 @@ export const AuthContext = createContext({logged: false});
 const AuthProvider = ({children}) => {
   const [user, setUser] = useState({logged: false});
   // http://192.168.100.177:8080
-  const [address, setAddress] = useState('http://192.168.100.10:3000');
+  const [address, setAddress] = useState('http://192.168.100.177:8000');
   const login = async (email, password) => {
     var formData = new FormData();
     formData.append('email', email);

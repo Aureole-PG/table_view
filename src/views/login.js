@@ -11,6 +11,7 @@ import {
 import CustomModal from '../components/Modal';
 import {AuthContext} from '../context/context';
 import Loading from '../components/Loading';
+import {isValidEmail, isValidPassword} from '../helpers/validators';
 const LoginScreen = () => {
   const [email, setEmail] = useState('danylove9569@hotmail.com');
   const [password, setPassword] = useState('');
@@ -20,12 +21,16 @@ const LoginScreen = () => {
   const [error, setError] = useState(false);
   // const [errorText, setErrorText] = useState('');
   const onSubmit = () => {
-    setLoading(true);
-    login(email, password).catch(e => {
-      setLoading(false);
+    if (isValidEmail(email) && isValidPassword(password)) {
+      setLoading(true);
+      login(email, password).catch(e => {
+        setLoading(false);
+        setError(true);
+        // setErrorText(JSON.stringify(e));
+      });
+    } else {
       setError(true);
-      // setErrorText(JSON.stringify(e));
-    });
+    }
   };
   if (loading) {
     return <Loading />;

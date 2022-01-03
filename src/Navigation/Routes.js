@@ -6,25 +6,11 @@ import LoginScreen from '../views/login';
 import HomeScreen from '../views/Home';
 import ItemScreen from '../views/Item';
 import {AuthContext} from '../context/context';
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-  DrawerItemList,
-  DrawerItem,
-} from '@react-navigation/drawer';
+import {createDrawerNavigator} from '@react-navigation/drawer';
 import {DrawnerContent} from '../components/DrawerContent';
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
-const CustomDrawerContent = props => {
-  const {logOut} = useContext(AuthContext);
-  return (
-    <DrawerContentScrollView {...props}>
-      <DrawerItemList {...props} />
-      {/* <Text>asdsad</Text> */}
-      <DrawerItem label="Salir" onPress={logOut} />
-    </DrawerContentScrollView>
-  );
-};
+
 const AuthStack = () => {
   return (
     <Stack.Navigator>
@@ -51,8 +37,7 @@ const AuthStack = () => {
 const MyDrawer = () => {
   return (
     <Drawer.Navigator drawerContent={props => <DrawnerContent {...props} />}>
-      <Drawer.Screen name="Clientes" component={AuthStack} />
-      {/* <Drawer.Screen name="Article" component={Article} /> */}
+      <Drawer.Screen name="Tramites" component={AuthStack} />
     </Drawer.Navigator>
   );
 };
